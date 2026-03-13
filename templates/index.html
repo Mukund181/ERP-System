@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>College ERP System</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --primary:#1E40AF; --primary-light:#3B82F6; --primary-dark:#1E3A8A;
+  --accent:#F59E0B;  --success:#10B981; --danger:#EF4444; --warning:#F97316;
+  --bg:#F0F4FF; --card:#FFFFFF; --sidebar:#1E293B; --sidebar-text:#94A3B8;
+  --text:#0F172A; --text-muted:#64748B; --border:#E2E8F0;
+  --shadow:0 4px 24px rgba(30,64,175,.10);
+  --radius:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;overflow-x:hidden}
+
+/* ── SIDEBAR ── */
+.sidebar{width:260px;background:var(--sidebar);color:var(--sidebar-text);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:200;transition:.3s}
+.sidebar-brand{padding:24px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.brand-logo{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;color:#fff;letter-spacing:-0.5px}
+.brand-logo span{color:var(--accent)}
+.brand-sub{font-size:11px;margin-top:2px;opacity:.5;text-transform:uppercase;letter-spacing:1px}
+.sidebar-menu{flex:1;padding:16px 12px;overflow-y:auto}
+.menu-section{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;padding:12px 8px 6px;opacity:.4;font-weight:600}
+.menu-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;font-size:13.5px;font-weight:500;transition:.2s;margin-bottom:2px;color:var(--sidebar-text)}
+.menu-item:hover{background:rgba(255,255,255,.07);color:#fff}
+.menu-item.active{background:var(--primary);color:#fff;box-shadow:0 4px 12px rgba(30,64,175,.4)}
+.menu-icon{font-size:17px;width:22px;text-align:center}
+.sidebar-footer{padding:16px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;opacity:.5}
+
+/* ── MAIN ── */
+.main{margin-left:260px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:#fff;padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 0 var(--border);position:sticky;top:0;z-index:100}
+.topbar-title{font-size:18px;font-weight:700;color:var(--text)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-badge{background:var(--primary);color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
+
+/* ── CONTENT ── */
+.content{padding:28px;flex:1}
+.page{display:none}
+.page.active{display:block}
+
+/* ── DASHBOARD STATS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px;margin-bottom:28px}
+.stat-card{background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow);display:flex;align-items:center;gap:16px;border-left:4px solid transparent;transition:.2s}
+.stat-card:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(30,64,175,.13)}
+.stat-card.blue{border-color:var(--primary-light)}
+.stat-card.amber{border-color:var(--accent)}
+.stat-card.green{border-color:var(--success)}
+.stat-card.red{border-color:var(--danger)}
+.stat-card.purple{border-color:#8B5CF6}
+.stat-card.teal{border-color:#14B8A6}
+.stat-icon{font-size:32px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;border-radius:12px}
+.blue .stat-icon{background:#EFF6FF} .amber .stat-icon{background:#FFFBEB}
+.green .stat-icon{background:#ECFDF5} .red .stat-icon{background:#FEF2F2}
+.purple .stat-icon{background:#F5F3FF} .teal .stat-icon{background:#F0FDFA}
+.stat-info h3{font-size:26px;font-weight:700;color:var(--text)}
+.stat-info p{font-size:12px;color:var(--text-muted);font-weight:500;margin-top:2px}
+
+/* ── CHARTS ROW ── */
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px}
+.chart-card{background:var(--card);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+.chart-card h3{font-size:14px;font-weight:600;margin-bottom:16px;color:var(--text)}
+
+/* ── BAR CHART ── */
+.bar-chart{display:flex;align-items:flex-end;gap:8px;height:140px;padding:0 4px}
+.bar-wrap{display:flex;flex-direction:column;align-items:center;flex:1;gap:4px}
+.bar{width:100%;border-radius:6px 6px 0 0;transition:.4s;min-width:20px}
+.bar-label{font-size:10px;color:var(--text-muted);text-align:center;max-width:60px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-val{font-size:11px;font-weight:700;color:var(--text-muted)}
+
+/* ── PIE-like DONUTS ── */
+.donut-row{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.donut-item{text-align:center}
+.donut-circle{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff;margin:0 auto 6px}
+.donut-label{font-size:11px;color:var(--text-muted);font-weight:500}
+.donut-count{font-size:14px;font-weight:700;color:var(--text)}
+
+/* ── TABLE CARD ── */
+.table-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.table-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--border)}
+.table-header h3{font-size:15px;font-weight:700}
+.table-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+input[type=text],input[type=email],input[type=tel],input[type=date],input[type=number],select,textarea{
+  border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;font-family:inherit;
+  color:var(--text);background:#fff;outline:none;transition:.2s;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+.search-box{border:1.5px solid var(--border);border-radius:8px;padding:8px 12px 8px 34px;font-size:13px;outline:none;background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 10px center;width:200px;transition:.2s}
+.search-box:focus{border-color:var(--primary);width:240px;box-shadow:0 0 0 3px rgba(59,130,246,.12)}
+
+table{width:100%;border-collapse:collapse}
+thead tr{background:#F8FAFC}
+th{padding:12px 16px;text-align:left;font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px}
+td{padding:13px 16px;font-size:13.5px;border-top:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:#F8FAFC}
+tbody tr:last-child td{border-bottom:none}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:600;white-space:nowrap}
+.badge-success{background:#DCFCE7;color:#15803D}
+.badge-danger{background:#FEE2E2;color:#B91C1C}
+.badge-warning{background:#FEF3C7;color:#B45309}
+.badge-info{background:#DBEAFE;color:#1D4ED8}
+.badge-purple{background:#EDE9FE;color:#6D28D9}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.2s;font-family:inherit}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px)}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{background:#059669}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#DC2626}
+.btn-warning{background:var(--accent);color:#fff}
+.btn-warning:hover{background:#D97706}
+.btn-outline{background:transparent;color:var(--primary);border:1.5px solid var(--primary)}
+.btn-outline:hover{background:var(--primary);color:#fff}
+.btn-sm{padding:5px 10px;font-size:12px;border-radius:6px}
+.btn-icon{background:none;border:none;cursor:pointer;padding:6px;border-radius:6px;font-size:16px;transition:.15s}
+.btn-icon:hover{background:var(--border)}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:16px;padding:28px;width:540px;max-width:96vw;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal h2{font-size:18px;font-weight:700;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid .full{grid-column:1/-1}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+
+/* ── TOAST ── */
+.toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{background:#1E293B;color:#fff;padding:12px 18px;border-radius:10px;font-size:13.5px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.25);transform:translateX(120%);transition:.3s;border-left:4px solid var(--success)}
+.toast.show{transform:translateX(0)}
+.toast.error{border-color:var(--danger)}
+.toast.warning{border-color:var(--accent)}
+
+/* ── LOADING ── */
+.loading{text-align:center;padding:40px;color:var(--text-muted)}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--primary);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── STUDENT DETAIL ── */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:20px}
+.detail-card{background:var(--card);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow)}
+.detail-card h4{font-size:13px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.detail-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)}
+.detail-row:last-child{border:none}
+.detail-row span:first-child{color:var(--text-muted)}
+.detail-row span:last-child{font-weight:600}
+.back-btn{display:inline-flex;align-items:center;gap:6px;color:var(--primary);font-size:13px;font-weight:600;cursor:pointer;margin-bottom:16px}
+.back-btn:hover{text-decoration:underline}
+
+/* ── FEE PROGRESS ── */
+.fee-progress{background:var(--border);border-radius:20px;height:6px;margin:6px 0}
+.fee-bar{height:100%;border-radius:20px;transition:.4s}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:48px 20px;color:var(--text-muted)}
+.empty-icon{font-size:48px;margin-bottom:10px}
+
+@media(max-width:900px){
+  .sidebar{transform:translateX(-260px)}
+  .main{margin-left:0}
+  .charts-row{grid-template-columns:1fr}
+  .detail-grid{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ SIDEBAR ══════════ -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-logo">ERP<span>.</span>College</div>
+    <div class="brand-sub">Management System</div>
+  </div>
+  <nav class="sidebar-menu">
+    <div class="menu-section">Main</div>
+    <div class="menu-item active" onclick="navigate('dashboard')"><span class="menu-icon">📊</span> Dashboard</div>
+    <div class="menu-section">Academic</div>
+    <div class="menu-item" onclick="navigate('students')"><span class="menu-icon">👨‍🎓</span> Students</div>
+    <div class="menu-item" onclick="navigate('faculty')"><span class="menu-icon">👨‍🏫</span> Faculty</div>
+    <div class="menu-item" onclick="navigate('departments')"><span class="menu-icon">🏫</span> Departments</div>
+    <div class="menu-item" onclick="navigate('subjects')"><span class="menu-icon">📚</span> Subjects</div>
+    <div class="menu-section">Records</div>
+    <div class="menu-item" onclick="navigate('attendance')"><span class="menu-icon">📋</span> Attendance</div>
+    <div class="menu-item" onclick="navigate('marks')"><span class="menu-icon">📝</span> Marks & Results</div>
+    <div class="menu-item" onclick="navigate('fees')"><span class="menu-icon">💰</span> Fee Management</div>
+  </nav>
+  <div class="sidebar-footer">College ERP v1.0 · AWS EC2 + RDS</div>
+</aside>
+
+<!-- ══════════ MAIN ══════════ -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbarTitle">Dashboard</div>
+    <div class="topbar-right">
+      <span class="topbar-badge">🟢 Connected to RDS</span>
+      <span style="font-size:13px;color:var(--text-muted)" id="currentDate"></span>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ════ DASHBOARD ════ -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="statsGrid">
+        <div class="loading"><div class="spinner"></div>Loading...</div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card">
+          <h3>📊 Students per Department</h3>
+          <div class="bar-chart" id="deptChart"></div>
+        </div>
+        <div class="chart-card">
+          <h3>📋 Attendance Overview</h3>
+          <div class="donut-row" id="attendanceChart"></div>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><h3>🔔 Recent Fee Alerts</h3></div>
+        <div id="feeAlerts"><div class="loading"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+
+    <!-- ════ STUDENTS ════ -->
+    <div class="page" id="page-students">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>👨‍🎓 Students</h3>
+          <div class="table-actions">
+            <input class="search-box" placeholder="Search students..." oninput="filterTable('studentsTable',this.value)"/>
+            <button class="btn btn-primary" onclick="openModal('studentModal')">+ Add Student</button>
+          </div>
+        </div>
+        <div id="studentsTableWrap"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- ════ STUDENT DETAIL ════ -->
+    <div class="page" id="page-student-detail">
+      <div class="back-btn" onclick="navigate('students')">← Back to Students</div>
+      <div id="studentDetail"></div>
+    </div>
+
+    <!-- ════ FACULTY ════ -->
+    <div class="page" id="page-faculty">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>👨‍🏫 Faculty</h3>
+          <div class="table-actions">
+            <input class="search-box" placeholder="Search faculty..." oninput="filterTable('facultyTable',this.value)"/>
+            <button class="btn btn-primary" onclick="openModal('facultyModal')">+ Add Faculty</button>
+          </div>
+        </div>
+        <div id="facultyTableWrap"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- ════ DEPARTMENTS ════ -->
+    <div class="page" id="page-departments">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>🏫 Departments</h3>
+          <button class="btn btn-primary" onclick="openModal('deptModal')">+ Add Department</button>
+        </div>
+        <div id="deptsTableWrap"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- ════ SUBJECTS ════ -->
+    <div class="page" id="page-subjects">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>📚 Subjects</h3>
+          <button class="btn btn-primary" onclick="openModal('subjectModal')">+ Add Subject</button>
+        </div>
+        <div id="subjectsTableWrap"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- ════ ATTENDANCE ════ -->
+    <div class="page" id="page-attendance">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>📋 Attendance Records</h3>
+          <button class="btn btn-primary" onclick="openModal('attendanceModal')">+ Mark Attendance</button>
+        </div>
+        <div id="attendanceTableWrap"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- ════ MARKS ════ -->
+    <div class="page" id="page-marks">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>📝 Marks & Results</h3>
+          <button class="btn btn-primary" onclick="openModal('marksModal')">+ Enter Marks</button>
+        </div>
+        <div id="marksTableWrap"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- ════ FEES ════ -->
+    <div class="page" id="page-fees">
+      <div class="table-card">
+        <div class="table-header">
+          <h3>💰 Fee Management</h3>
+          <input class="search-box" placeholder="Search..." oninput="filterTable('feesTable',this.value)"/>
+        </div>
+        <div id="feesTableWrap"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ══════════ MODALS ══════════ -->
+
+<!-- Student -->
+<div class="modal-overlay" id="studentModal">
+  <div class="modal">
+    <h2 id="studentModalTitle">Add Student</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>Roll No *</label><input id="s_roll" placeholder="CSE2101"/></div>
+      <div class="form-group"><label>Full Name *</label><input id="s_name" placeholder="Aarav Mehta"/></div>
+      <div class="form-group full"><label>Email *</label><input id="s_email" type="email" placeholder="student@college.edu"/></div>
+      <div class="form-group"><label>Phone</label><input id="s_phone" placeholder="9876543210"/></div>
+      <div class="form-group"><label>Date of Birth</label><input id="s_dob" type="date"/></div>
+      <div class="form-group"><label>Department</label>
+        <select id="s_dept"><option value="">Select Department</option></select>
+      </div>
+      <div class="form-group"><label>Semester</label>
+        <select id="s_sem">
+          <option value="">Select</option>
+          <option>1</option><option>2</option><option>3</option><option>4</option>
+          <option>5</option><option>6</option><option>7</option><option>8</option>
+        </select>
+      </div>
+      <div class="form-group full"><label>Address</label><textarea id="s_address" rows="2" placeholder="City, State"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('studentModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStudent()">Save Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- Faculty -->
+<div class="modal-overlay" id="facultyModal">
+  <div class="modal">
+    <h2>Add Faculty</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>Employee ID *</label><input id="f_empid" placeholder="FAC008"/></div>
+      <div class="form-group"><label>Full Name *</label><input id="f_name" placeholder="Dr. Name"/></div>
+      <div class="form-group full"><label>Email *</label><input id="f_email" type="email"/></div>
+      <div class="form-group"><label>Phone</label><input id="f_phone"/></div>
+      <div class="form-group"><label>Department</label>
+        <select id="f_dept"><option value="">Select</option></select>
+      </div>
+      <div class="form-group"><label>Designation</label><input id="f_desig" placeholder="Assistant Professor"/></div>
+      <div class="form-group full"><label>Qualification</label><input id="f_qual" placeholder="M.Tech / Ph.D."/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('facultyModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveFaculty()">Save Faculty</button>
+    </div>
+  </div>
+</div>
+
+<!-- Department -->
+<div class="modal-overlay" id="deptModal">
+  <div class="modal">
+    <h2>Add Department</h2>
+    <div class="form-grid">
+      <div class="form-group full"><label>Department Name *</label><input id="d_name" placeholder="Computer Science & Engineering"/></div>
+      <div class="form-group"><label>Code *</label><input id="d_code" placeholder="CSE"/></div>
+      <div class="form-group"><label>HoD Name</label><input id="d_hod" placeholder="Dr. Name"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('deptModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveDept()">Save Department</button>
+    </div>
+  </div>
+</div>
+
+<!-- Subject -->
+<div class="modal-overlay" id="subjectModal">
+  <div class="modal">
+    <h2>Add Subject</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>Subject Code *</label><input id="sub_code" placeholder="CSE301"/></div>
+      <div class="form-group"><label>Credits</label><input id="sub_cred" type="number" value="3" min="1" max="6"/></div>
+      <div class="form-group full"><label>Subject Name *</label><input id="sub_name" placeholder="Data Structures & Algorithms"/></div>
+      <div class="form-group"><label>Department</label>
+        <select id="sub_dept"><option value="">Select</option></select>
+      </div>
+      <div class="form-group"><label>Semester</label>
+        <select id="sub_sem"><option value="">Select</option>
+          <option>1</option><option>2</option><option>3</option><option>4</option>
+          <option>5</option><option>6</option><option>7</option><option>8</option>
+        </select>
+      </div>
+      <div class="form-group full"><label>Faculty</label>
+        <select id="sub_faculty"><option value="">Select</option></select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('subjectModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSubject()">Save Subject</button>
+    </div>
+  </div>
+</div>
+
+<!-- Attendance -->
+<div class="modal-overlay" id="attendanceModal">
+  <div class="modal">
+    <h2>Mark Attendance</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>Student</label>
+        <select id="att_student"><option value="">Select</option></select>
+      </div>
+      <div class="form-group"><label>Subject</label>
+        <select id="att_subject"><option value="">Select</option></select>
+      </div>
+      <div class="form-group"><label>Date</label><input id="att_date" type="date"/></div>
+      <div class="form-group"><label>Status</label>
+        <select id="att_status">
+          <option value="present">Present</option>
+          <option value="absent">Absent</option>
+          <option value="late">Late</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('attendanceModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAttendance()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Marks -->
+<div class="modal-overlay" id="marksModal">
+  <div class="modal">
+    <h2>Enter Marks</h2>
+    <div class="form-grid">
+      <div class="form-group"><label>Student</label>
+        <select id="m_student"><option value="">Select</option></select>
+      </div>
+      <div class="form-group"><label>Subject</label>
+        <select id="m_subject"><option value="">Select</option></select>
+      </div>
+      <div class="form-group"><label>Exam Type</label>
+        <select id="m_type">
+          <option value="internal">Internal</option>
+          <option value="midterm">Midterm</option>
+          <option value="final">Final</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Marks Obtained</label><input id="m_marks" type="number" min="0" max="100"/></div>
+      <div class="form-group"><label>Max Marks</label><input id="m_max" type="number" value="100"/></div>
+      <div class="form-group"><label>Grade</label>
+        <select id="m_grade">
+          <option>A+</option><option>A</option><option>B+</option>
+          <option>B</option><option>C</option><option>F</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('marksModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMarks()">Save Marks</button>
+    </div>
+  </div>
+</div>
+
+<!-- Pay Fee -->
+<div class="modal-overlay" id="payModal">
+  <div class="modal">
+    <h2>💳 Record Payment</h2>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Student</label>
+      <input id="pay_student" readonly style="background:#F8FAFC"/>
+    </div>
+    <div class="form-group">
+      <label>Amount to Pay (₹)</label>
+      <input id="pay_amount" type="number" min="1" placeholder="Enter amount"/>
+    </div>
+    <input type="hidden" id="pay_fee_id"/>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('payModal')">Cancel</button>
+      <button class="btn btn-success" onclick="submitPayment()">✓ Record Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ TOASTS ══════════ -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  CONFIG — change this to your EC2 public IP
+// ═══════════════════════════════════════════
+const API = 'http://13.233.94.211:5000'; //  http://YOUR_EC2_IP:5000
+
+// ─── Globals ───
+let allDepts = [], allFaculty = [], allStudents = [], allSubjects = [];
+let editStudentId = null;
+
+// ─── Date ───
+document.getElementById('currentDate').textContent =
+  new Date().toLocaleDateString('en-IN',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+
+// ═══════════════════════════════════════════
+//  NAVIGATION
+// ═══════════════════════════════════════════
+const pageLabels = {
+  dashboard:'Dashboard', students:'Students', faculty:'Faculty',
+  departments:'Departments', subjects:'Subjects', attendance:'Attendance',
+  marks:'Marks & Results', fees:'Fee Management', 'student-detail':'Student Profile'
+};
+
+function navigate(page) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.menu-item').forEach(m=>{
+    if(m.textContent.trim().toLowerCase().includes(pageLabels[page]?.split(' ')[0]?.toLowerCase())) m.classList.add('active');
+  });
+  document.getElementById('topbarTitle').textContent = pageLabels[page] || page;
+  const loaders = {
+    dashboard:   loadDashboard,
+    students:    loadStudents,
+    faculty:     loadFaculty,
+    departments: loadDepartments,
+    subjects:    loadSubjects,
+    attendance:  loadAttendance,
+    marks:       loadMarks,
+    fees:        loadFees,
+  };
+  if(loaders[page]) loaders[page]();
+}
+
+// ═══════════════════════════════════════════
+//  API HELPERS
+// ═══════════════════════════════════════════
+async function apiFetch(url, opts={}) {
+  try {
+    const res = await fetch(API+url, {headers:{'Content-Type':'application/json'},...opts});
+    return await res.json();
+  } catch(e) {
+    toast('Cannot reach server. Is Flask running?','error');
+    return null;
+  }
+}
+
+// ═══════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════
+async function loadDashboard() {
+  const data = await apiFetch('/api/dashboard');
+  if(!data) return;
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card blue"><div class="stat-icon">👨‍🎓</div><div class="stat-info"><h3>${data.total_students}</h3><p>Total Students</p></div></div>
+    <div class="stat-card amber"><div class="stat-icon">👨‍🏫</div><div class="stat-info"><h3>${data.total_faculty}</h3><p>Total Faculty</p></div></div>
+    <div class="stat-card purple"><div class="stat-icon">🏫</div><div class="stat-info"><h3>${data.total_depts}</h3><p>Departments</p></div></div>
+    <div class="stat-card teal"><div class="stat-icon">📚</div><div class="stat-info"><h3>${data.total_subjects}</h3><p>Subjects</p></div></div>
+    <div class="stat-card green"><div class="stat-icon">💵</div><div class="stat-info"><h3>₹${Number(data.fees_collected).toLocaleString('en-IN')}</h3><p>Fees Collected</p></div></div>
+    <div class="stat-card red"><div class="stat-icon">⚠️</div><div class="stat-info"><h3>₹${Number(data.fees_pending).toLocaleString('en-IN')}</h3><p>Fees Pending</p></div></div>
+  `;
+
+  // Bar chart
+  const colors = ['#3B82F6','#F59E0B','#10B981','#EF4444','#8B5CF6'];
+  const maxVal = Math.max(...data.dept_wise.map(d=>d.total),1);
+  document.getElementById('deptChart').innerHTML = data.dept_wise.map((d,i)=>`
+    <div class="bar-wrap">
+      <div class="bar-val">${d.total}</div>
+      <div class="bar" style="height:${Math.max(d.total/maxVal*120,8)}px;background:${colors[i%5]}"></div>
+      <div class="bar-label">${d.name.split(' ')[0]}</div>
+    </div>
+  `).join('');
+
+  // Donut-style attendance
+  const attColors = {present:'#10B981', absent:'#EF4444', late:'#F59E0B'};
+  document.getElementById('attendanceChart').innerHTML = data.attendance_summary.map(a=>`
+    <div class="donut-item">
+      <div class="donut-circle" style="background:${attColors[a.status]||'#94A3B8'}">${a.cnt}</div>
+      <div class="donut-label">${a.status.charAt(0).toUpperCase()+a.status.slice(1)}</div>
+    </div>
+  `).join('');
+
+  // Fee alerts
+  const fees = await apiFetch('/api/fees');
+  const alerts = fees?.filter(f=>f.status!=='paid').slice(0,5) || [];
+  document.getElementById('feeAlerts').innerHTML = alerts.length ? `
+    <table><thead><tr><th>Student</th><th>Dept</th><th>Total</th><th>Paid</th><th>Status</th></tr></thead>
+    <tbody>${alerts.map(f=>`
+      <tr>
+        <td><b>${f.student_name}</b><br><small style="color:var(--text-muted)">${f.roll_no}</small></td>
+        <td>${f.dept_name||'—'}</td>
+        <td>₹${Number(f.amount).toLocaleString('en-IN')}</td>
+        <td>₹${Number(f.paid).toLocaleString('en-IN')}</td>
+        <td>${statusBadge(f.status)}</td>
+      </tr>`).join('')}
+    </tbody></table>` :
+    '<div class="empty"><div class="empty-icon">✅</div><p>All fees are paid!</p></div>';
+}
+
+// ═══════════════════════════════════════════
+//  STUDENTS
+// ═══════════════════════════════════════════
+async function loadStudents() {
+  const [students, depts] = await Promise.all([apiFetch('/api/students'), apiFetch('/api/departments')]);
+  allDepts = depts || [];
+  allStudents = students || [];
+  populateDeptSelects();
+  document.getElementById('studentsTableWrap').innerHTML = students?.length ? `
+    <table id="studentsTable">
+      <thead><tr><th>Roll No</th><th>Name</th><th>Department</th><th>Sem</th><th>Email</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>${students.map(s=>`
+        <tr>
+          <td><span style="font-family:'JetBrains Mono';font-size:12px;color:var(--primary)">${s.roll_no}</span></td>
+          <td><b>${s.name}</b></td>
+          <td><span class="badge badge-info">${s.dept_code||'—'}</span> ${s.dept_name||'—'}</td>
+          <td><span class="badge badge-purple">Sem ${s.semester}</span></td>
+          <td style="color:var(--text-muted);font-size:12px">${s.email}</td>
+          <td>${s.phone||'—'}</td>
+          <td><span class="badge badge-success">Active</span></td>
+          <td>
+            <button class="btn-icon" onclick="viewStudent(${s.id})" title="View">👁️</button>
+            <button class="btn-icon" onclick="editStudent(${JSON.stringify(s).replace(/"/g,'&quot;')})" title="Edit">✏️</button>
+            <button class="btn-icon" onclick="deleteStudent(${s.id})" title="Delete">🗑️</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>` :
+    '<div class="empty"><div class="empty-icon">👨‍🎓</div><p>No students found. Add your first student!</p></div>';
+}
+
+async function viewStudent(id) {
+  navigate('student-detail');
+  document.getElementById('studentDetail').innerHTML = '<div class="loading"><div class="spinner"></div>Loading profile...</div>';
+  const s = await apiFetch(`/api/students/${id}`);
+  if(!s){document.getElementById('studentDetail').innerHTML='<p>Error loading student</p>';return;}
+  const attPct = s.attendance.length ? Math.round(s.attendance.filter(a=>a.status==='present').length/s.attendance.length*100) : 0;
+  const totalMarks = s.marks.reduce((acc,m)=>acc+Number(m.marks||0),0);
+  const feeStatus = s.fees[0] ? s.fees[0].status : 'N/A';
+
+  document.getElementById('studentDetail').innerHTML = `
+    <div style="display:flex;align-items:center;gap:20px;margin-bottom:24px;background:#fff;padding:24px;border-radius:14px;box-shadow:var(--shadow)">
+      <div style="width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-light));display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;font-weight:700;flex-shrink:0">
+        ${s.name.charAt(0)}
+      </div>
+      <div>
+        <h2 style="font-size:22px;font-weight:700">${s.name}</h2>
+        <p style="color:var(--text-muted);font-size:13px">${s.roll_no} · ${s.dept_name||'No Department'} · Semester ${s.semester}</p>
+        <p style="color:var(--text-muted);font-size:13px">${s.email}</p>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-card">
+        <h4>📋 Attendance</h4>
+        <div style="text-align:center;padding:10px 0">
+          <div style="font-size:42px;font-weight:700;color:${attPct>=75?'var(--success)':'var(--danger)'}">${attPct}%</div>
+          <div style="font-size:12px;color:var(--text-muted)">${s.attendance.length} classes recorded</div>
+          <div style="font-size:12px;margin-top:4px;color:${attPct>=75?'var(--success)':'var(--danger)'}">${attPct>=75?'✅ Good Attendance':'⚠️ Below 75% — At Risk'}</div>
+        </div>
+      </div>
+      <div class="detail-card">
+        <h4>📝 Performance</h4>
+        ${s.marks.length ? s.marks.slice(0,4).map(m=>`
+          <div class="detail-row">
+            <span>${m.subject_code}</span>
+            <span>${m.marks}/${m.max_marks} <b style="color:var(--primary)">${m.grade}</b></span>
+          </div>`).join('') : '<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:10px">No marks recorded</p>'}
+      </div>
+      <div class="detail-card">
+        <h4>💰 Fee Status</h4>
+        ${s.fees.map(f=>`
+          <div class="detail-row"><span>Sem ${f.semester}</span><span>${statusBadge(f.status)}</span></div>
+          <div class="detail-row"><span>Total</span><span>₹${Number(f.amount).toLocaleString('en-IN')}</span></div>
+          <div class="detail-row"><span>Paid</span><span style="color:var(--success)">₹${Number(f.paid).toLocaleString('en-IN')}</span></div>
+          <div class="detail-row"><span>Due</span><span style="color:var(--danger)">₹${(Number(f.amount)-Number(f.paid)).toLocaleString('en-IN')}</span></div>
+          <div class="fee-progress"><div class="fee-bar" style="width:${Math.min(100,Number(f.paid)/Number(f.amount)*100)}%;background:var(--success)"></div></div>
+        `).join('') || '<p style="color:var(--text-muted);font-size:13px;text-align:center;padding:10px">No fee records</p>'}
+      </div>
+    </div>`;
+}
+
+function editStudent(s) {
+  editStudentId = s.id;
+  document.getElementById('studentModalTitle').textContent = 'Edit Student';
+  document.getElementById('s_roll').value    = s.roll_no;
+  document.getElementById('s_name').value   = s.name;
+  document.getElementById('s_email').value  = s.email;
+  document.getElementById('s_phone').value  = s.phone||'';
+  document.getElementById('s_dob').value    = s.dob||'';
+  document.getElementById('s_dept').value   = s.dept_id||'';
+  document.getElementById('s_sem').value    = s.semester||'';
+  document.getElementById('s_address').value= s.address||'';
+  openModal('studentModal');
+}
+
+async function saveStudent() {
+  const body = {
+    roll_no: document.getElementById('s_roll').value,
+    name:    document.getElementById('s_name').value,
+    email:   document.getElementById('s_email').value,
+    phone:   document.getElementById('s_phone').value,
+    dob:     document.getElementById('s_dob').value||null,
+    dept_id: document.getElementById('s_dept').value||null,
+    semester:document.getElementById('s_sem').value||null,
+    address: document.getElementById('s_address').value,
+  };
+  if(!body.roll_no||!body.name||!body.email){toast('Roll No, Name and Email are required','error');return;}
+  const url  = editStudentId ? `/api/students/${editStudentId}` : '/api/students';
+  const meth = editStudentId ? 'PUT' : 'POST';
+  const res  = await apiFetch(url,{method:meth,body:JSON.stringify(body)});
+  if(res?.success){
+    toast(editStudentId?'Student updated!':'Student added!');
+    closeModal('studentModal'); editStudentId=null;
+    document.getElementById('studentModalTitle').textContent='Add Student';
+    loadStudents();
+  }
+}
+
+async function deleteStudent(id) {
+  if(!confirm('Deactivate this student?')) return;
+  const res = await apiFetch(`/api/students/${id}`,{method:'DELETE'});
+  if(res?.success){toast('Student removed'); loadStudents();}
+}
+
+// ═══════════════════════════════════════════
+//  FACULTY
+// ═══════════════════════════════════════════
+async function loadFaculty() {
+  const [faculty, depts] = await Promise.all([apiFetch('/api/faculty'), apiFetch('/api/departments')]);
+  allDepts = depts||[];
+  allFaculty = faculty||[];
+  populateDeptSelects();
+  document.getElementById('facultyTableWrap').innerHTML = faculty?.length ? `
+    <table id="facultyTable">
+      <thead><tr><th>Emp ID</th><th>Name</th><th>Department</th><th>Designation</th><th>Qualification</th><th>Email</th><th>Actions</th></tr></thead>
+      <tbody>${faculty.map(f=>`
+        <tr>
+          <td><span style="font-family:'JetBrains Mono';font-size:12px;color:var(--primary)">${f.emp_id}</span></td>
+          <td><b>${f.name}</b></td>
+          <td>${f.dept_name||'—'}</td>
+          <td><span class="badge badge-info">${f.designation||'—'}</span></td>
+          <td>${f.qualification||'—'}</td>
+          <td style="font-size:12px;color:var(--text-muted)">${f.email}</td>
+          <td>
+            <button class="btn-icon" onclick="deleteFaculty(${f.id})">🗑️</button>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>` :
+    '<div class="empty"><div class="empty-icon">👨‍🏫</div><p>No faculty records found.</p></div>';
+}
+
+async function saveFaculty() {
+  const body={emp_id:document.getElementById('f_empid').value,name:document.getElementById('f_name').value,email:document.getElementById('f_email').value,phone:document.getElementById('f_phone').value,dept_id:document.getElementById('f_dept').value||null,designation:document.getElementById('f_desig').value,qualification:document.getElementById('f_qual').value};
+  if(!body.emp_id||!body.name||!body.email){toast('Emp ID, Name & Email required','error');return;}
+  const res=await apiFetch('/api/faculty',{method:'POST',body:JSON.stringify(body)});
+  if(res?.success){toast('Faculty added!');closeModal('facultyModal');loadFaculty();}
+}
+async function deleteFaculty(id){if(!confirm('Remove this faculty?'))return;const res=await apiFetch(`/api/faculty/${id}`,{method:'DELETE'});if(res?.success){toast('Faculty removed');loadFaculty();}}
+
+// ═══════════════════════════════════════════
+//  DEPARTMENTS
+// ═══════════════════════════════════════════
+async function loadDepartments() {
+  const depts = await apiFetch('/api/departments');
+  allDepts = depts||[];
+  document.getElementById('deptsTableWrap').innerHTML = depts?.length ? `
+    <table>
+      <thead><tr><th>Code</th><th>Department Name</th><th>Head of Department</th><th>Actions</th></tr></thead>
+      <tbody>${depts.map(d=>`
+        <tr>
+          <td><span class="badge badge-info">${d.code}</span></td>
+          <td><b>${d.name}</b></td>
+          <td>${d.hod||'—'}</td>
+          <td><button class="btn-icon" onclick="deleteDept(${d.id})">🗑️</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>` :
+    '<div class="empty"><div class="empty-icon">🏫</div><p>No departments yet.</p></div>';
+}
+
+async function saveDept(){
+  const body={name:document.getElementById('d_name').value,code:document.getElementById('d_code').value,hod:document.getElementById('d_hod').value};
+  if(!body.name||!body.code){toast('Name and Code required','error');return;}
+  const res=await apiFetch('/api/departments',{method:'POST',body:JSON.stringify(body)});
+  if(res?.success){toast('Department added!');closeModal('deptModal');loadDepartments();}
+}
+async function deleteDept(id){if(!confirm('Delete this department?'))return;const res=await apiFetch(`/api/departments/${id}`,{method:'DELETE'});if(res?.success){toast('Department deleted');loadDepartments();}}
+
+// ═══════════════════════════════════════════
+//  SUBJECTS
+// ═══════════════════════════════════════════
+async function loadSubjects(){
+  const [subs,fac,depts]=await Promise.all([apiFetch('/api/subjects'),apiFetch('/api/faculty'),apiFetch('/api/departments')]);
+  allFaculty=fac||[]; allDepts=depts||[]; allSubjects=subs||[];
+  populateDeptSelects(); populateFacultySelects();
+  document.getElementById('subjectsTableWrap').innerHTML=subs?.length?`
+    <table>
+      <thead><tr><th>Code</th><th>Subject Name</th><th>Department</th><th>Semester</th><th>Credits</th><th>Faculty</th><th>Actions</th></tr></thead>
+      <tbody>${subs.map(s=>`
+        <tr>
+          <td><span style="font-family:'JetBrains Mono';font-size:12px;color:var(--primary)">${s.code}</span></td>
+          <td><b>${s.name}</b></td>
+          <td>${s.dept_name||'—'}</td>
+          <td><span class="badge badge-purple">Sem ${s.semester}</span></td>
+          <td><span class="badge badge-info">${s.credits} Cr</span></td>
+          <td>${s.faculty_name||'—'}</td>
+          <td><button class="btn-icon" onclick="deleteSubject(${s.id})">🗑️</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`:'<div class="empty"><div class="empty-icon">📚</div><p>No subjects found.</p></div>';
+}
+async function saveSubject(){
+  const body={code:document.getElementById('sub_code').value,name:document.getElementById('sub_name').value,dept_id:document.getElementById('sub_dept').value||null,semester:document.getElementById('sub_sem').value||null,credits:document.getElementById('sub_cred').value||3,faculty_id:document.getElementById('sub_faculty').value||null};
+  if(!body.code||!body.name){toast('Code and Name required','error');return;}
+  const res=await apiFetch('/api/subjects',{method:'POST',body:JSON.stringify(body)});
+  if(res?.success){toast('Subject added!');closeModal('subjectModal');loadSubjects();}
+}
+async function deleteSubject(id){if(!confirm('Delete this subject?'))return;const res=await apiFetch(`/api/subjects/${id}`,{method:'DELETE'});if(res?.success){toast('Subject deleted');loadSubjects();}}
+
+// ═══════════════════════════════════════════
+//  ATTENDANCE
+// ═══════════════════════════════════════════
+async function loadAttendance(){
+  const [att,students,subs]=await Promise.all([apiFetch('/api/attendance'),apiFetch('/api/students'),apiFetch('/api/subjects')]);
+  allStudents=students||[]; allSubjects=subs||[];
+  populateStudentSelects(); populateSubjectSelects();
+  // set today's date
+  document.getElementById('att_date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('attendanceTableWrap').innerHTML=att?.length?`
+    <table id="attendanceTable">
+      <thead><tr><th>Date</th><th>Student</th><th>Roll No</th><th>Subject</th><th>Status</th></tr></thead>
+      <tbody>${att.map(a=>`
+        <tr>
+          <td>${a.date}</td>
+          <td><b>${a.student_name}</b></td>
+          <td><span style="font-family:'JetBrains Mono';font-size:12px">${a.roll_no}</span></td>
+          <td>${a.subject_name} <small style="color:var(--text-muted)">(${a.subject_code})</small></td>
+          <td>${attBadge(a.status)}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`:'<div class="empty"><div class="empty-icon">📋</div><p>No attendance records.</p></div>';
+}
+async function saveAttendance(){
+  const body={student_id:document.getElementById('att_student').value,subject_id:document.getElementById('att_subject').value,date:document.getElementById('att_date').value,status:document.getElementById('att_status').value};
+  if(!body.student_id||!body.subject_id||!body.date){toast('All fields required','error');return;}
+  const res=await apiFetch('/api/attendance',{method:'POST',body:JSON.stringify(body)});
+  if(res?.success){toast('Attendance marked!');closeModal('attendanceModal');loadAttendance();}
+}
+
+// ═══════════════════════════════════════════
+//  MARKS
+// ═══════════════════════════════════════════
+async function loadMarks(){
+  const [marks,students,subs]=await Promise.all([apiFetch('/api/marks'),apiFetch('/api/students'),apiFetch('/api/subjects')]);
+  allStudents=students||[]; allSubjects=subs||[];
+  populateStudentSelects(); populateSubjectSelects();
+  document.getElementById('marksTableWrap').innerHTML=marks?.length?`
+    <table id="marksTable">
+      <thead><tr><th>Student</th><th>Roll No</th><th>Subject</th><th>Exam</th><th>Marks</th><th>Grade</th></tr></thead>
+      <tbody>${marks.map(m=>`
+        <tr>
+          <td><b>${m.student_name}</b></td>
+          <td><span style="font-family:'JetBrains Mono';font-size:12px">${m.roll_no}</span></td>
+          <td>${m.subject_name} <small style="color:var(--text-muted)">(${m.code})</small></td>
+          <td><span class="badge badge-info">${m.exam_type}</span></td>
+          <td><b>${m.marks}</b>/${m.max_marks}</td>
+          <td><span class="badge ${m.grade==='A+'?'badge-success':m.grade==='F'?'badge-danger':'badge-warning'}">${m.grade}</span></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`:'<div class="empty"><div class="empty-icon">📝</div><p>No marks entered yet.</p></div>';
+}
+async function saveMarks(){
+  const body={student_id:document.getElementById('m_student').value,subject_id:document.getElementById('m_subject').value,exam_type:document.getElementById('m_type').value,marks:document.getElementById('m_marks').value,max_marks:document.getElementById('m_max').value||100,grade:document.getElementById('m_grade').value};
+  if(!body.student_id||!body.subject_id||!body.marks){toast('Student, Subject & Marks required','error');return;}
+  const res=await apiFetch('/api/marks',{method:'POST',body:JSON.stringify(body)});
+  if(res?.success){toast('Marks saved!');closeModal('marksModal');loadMarks();}
+}
+
+// ═══════════════════════════════════════════
+//  FEES
+// ═══════════════════════════════════════════
+async function loadFees(){
+  const fees=await apiFetch('/api/fees');
+  document.getElementById('feesTableWrap').innerHTML=fees?.length?`
+    <table id="feesTable">
+      <thead><tr><th>Student</th><th>Dept</th><th>Sem</th><th>Total Fee</th><th>Paid</th><th>Pending</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>${fees.map(f=>`
+        <tr>
+          <td><b>${f.student_name}</b><br><span style="font-family:'JetBrains Mono';font-size:11px;color:var(--text-muted)">${f.roll_no}</span></td>
+          <td>${f.dept_name||'—'}</td>
+          <td>Sem ${f.semester}</td>
+          <td>₹${Number(f.amount).toLocaleString('en-IN')}</td>
+          <td style="color:var(--success);font-weight:600">₹${Number(f.paid).toLocaleString('en-IN')}</td>
+          <td style="color:var(--danger);font-weight:600">₹${(Number(f.amount)-Number(f.paid)).toLocaleString('en-IN')}</td>
+          <td>${statusBadge(f.status)}</td>
+          <td>${f.status!=='paid'?`<button class="btn btn-success btn-sm" onclick="openPayModal(${f.id},'${f.student_name}',${f.amount-f.paid})">Pay</button>`:'<span style="color:var(--text-muted);font-size:12px">✓ Paid</span>'}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`:'<div class="empty"><div class="empty-icon">💰</div><p>No fee records found.</p></div>';
+}
+
+function openPayModal(feeId,studentName,remaining){
+  document.getElementById('pay_fee_id').value=feeId;
+  document.getElementById('pay_student').value=studentName;
+  document.getElementById('pay_amount').value=remaining;
+  openModal('payModal');
+}
+async function submitPayment(){
+  const feeId=document.getElementById('pay_fee_id').value;
+  const amount=document.getElementById('pay_amount').value;
+  if(!amount||amount<=0){toast('Enter a valid amount','error');return;}
+  const res=await apiFetch(`/api/fees/${feeId}/pay`,{method:'PUT',body:JSON.stringify({amount:Number(amount)})});
+  if(res?.success){toast('Payment recorded! ✅');closeModal('payModal');loadFees();}
+}
+
+// ═══════════════════════════════════════════
+//  POPULATE SELECT DROPDOWNS
+// ═══════════════════════════════════════════
+function populateDeptSelects(){
+  const opts='<option value="">Select Department</option>'+allDepts.map(d=>`<option value="${d.id}">${d.name}</option>`).join('');
+  ['s_dept','f_dept','sub_dept'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+}
+function populateFacultySelects(){
+  const opts='<option value="">Select Faculty</option>'+allFaculty.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
+  const el=document.getElementById('sub_faculty');if(el)el.innerHTML=opts;
+}
+function populateStudentSelects(){
+  const opts='<option value="">Select Student</option>'+allStudents.map(s=>`<option value="${s.id}">${s.roll_no} — ${s.name}</option>`).join('');
+  ['att_student','m_student'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+}
+function populateSubjectSelects(){
+  const opts='<option value="">Select Subject</option>'+allSubjects.map(s=>`<option value="${s.id}">${s.code} — ${s.name}</option>`).join('');
+  ['att_subject','m_subject'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=opts;});
+}
+
+// ═══════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════
+function statusBadge(s){const m={paid:'badge-success',pending:'badge-danger',partial:'badge-warning'};return`<span class="badge ${m[s]||'badge-info'}">${s}</span>`;}
+function attBadge(s){const m={present:'badge-success',absent:'badge-danger',late:'badge-warning'};return`<span class="badge ${m[s]||'badge-info'}">${s}</span>`;}
+
+function filterTable(tableId, q){
+  const rows=document.querySelectorAll(`#${tableId} tbody tr`);
+  rows.forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q.toLowerCase())?'':'none';});
+}
+
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+let toastId=0;
+function toast(msg,type='success'){
+  const id='t'+(toastId++);
+  const div=document.createElement('div');
+  div.className=`toast ${type}`;div.id=id;div.textContent=msg;
+  document.getElementById('toastContainer').appendChild(div);
+  setTimeout(()=>div.classList.add('show'),10);
+  setTimeout(()=>{div.classList.remove('show');setTimeout(()=>div.remove(),400);},3000);
+}
+
+// ─── Init ───
+loadDashboard();
+</script>
+</body>
+</html>
