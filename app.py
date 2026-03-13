@@ -16,12 +16,12 @@ CORS(app)
 #  DB CONFIG  ← Update these values with your AWS RDS details
 # ─────────────────────────────────────────
 DB_CONFIG = {
-    'host':     'college-erp-db.cziayy4ekgk7.ap-south-1.rds.amazonaws.com',
-    'user':     'admin',
-    'password': 'college1234',
-    'database': 'college_erp',
-    'port':     3306,
-    'autocommit': True
+    'host':     ' ',
+    'user':     ' ',
+    'password': ' ',
+    'database': ' ',
+    'port':     ****,
+    'autocommit': True/False
 }
 
 def get_db():
@@ -347,4 +347,5 @@ def pay_fee(fee_id):
 
 # ══════════════════════════════════════════
 if __name__ == '__main__':
+
     app.run(host='0.0.0.0', port=5000, debug=True)
