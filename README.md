@@ -13,7 +13,7 @@ A full-stack College ERP (Enterprise Resource Planning) system deployed on **AWS
 ## 🌍 Live Demo
 
 ```
-http://13.233.94.211:5000
+http://65.2.144.162:5000
 ```
 
 > Hosted on AWS EC2 (Mumbai Region) · Database on AWS RDS MySQL
